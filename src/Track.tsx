@@ -2,18 +2,17 @@ import type {TrackDataItem} from "./types.ts";
 
 type Props = {
     track: TrackDataItem
-    isSelected:  boolean
+    isSelected: boolean
     onSelect: (trackId: string) => void  // кол бэк функкцию  передали, которая ничего не отдает,но принимает
 }
 
 export function Track(props: Props) {
 
 
-
-    const color =  props.isSelected ? "green" : "white";
+    const color = props.isSelected ? "green" : "white";
 
     return (
-        <li  style={{color: color}}>
+        <li style={{color: color}}>
             <h4 onClick={() => {
                 props.onSelect(props.track.id)
             }} // () => {} - кол бэк функция наблюдатель, слушатель события, который вызывается при клике

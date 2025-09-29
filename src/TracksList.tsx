@@ -1,49 +1,63 @@
 import {Track} from "./Track.tsx";
-import {useEffect, useState} from "react";
-import type {TrackDataItem,} from "./types.ts";
+import * as React from "react";
+import type {TrackDataItem} from "./types.ts";
 import {api} from "./api.ts";
+import {useQuery} from "./hooks/utils/useQuery.ts";
 
 type Props = {
-    onTrackSelected: (trackId: string) => void;
-    selectedTrackId: string  | null;
+    onTrackSelect: (trackId: string) => void //  уведомляем  родителя, что такой трек  выбран
+    selectedTrackId: string | null // трек, который выбран
 }
 
-export function TracksList(props: Props) {
-    const [listQueryStatus, setQueryListStatus] = useState<'pending' | 'success' | 'loading'>('loading') // загрузка.FSM типо true\false,  но мы предпологаем, что будут дополнительные детали
-    const [tracks, setTracks] = useState<TrackDataItem[] | null>(null) // треки
-    // const [selectedTrackId, setSelectedTrackId] = useState<string | null>(null) // трек, который выбран
+function useTracksList(onTrackSelect: (trackId: string) => void) {
+    const {
+        status: listQueryStatus, // загрузка.FSM типо true\false,  но мы предпологаем, что будут дополнительные детали
+        data: tracks, // треки
+    } = useQuery<TrackDataItem[]>({
+        queryKeys: [], // ключи запроса
+        queryFn: () => {
+            return api.getTracks() //   сделали  запрос
+                .then(json => json.data) // помещаем все данные в tracks
+        }
+    }) // FSM
 
-
-    useEffect(() => {  // Хук выполняется после первой отрисовки компонента.
+    React.useEffect(() => {  // Хук выполняется после первой отрисовки компонента.
         // Если передать пустой массив зависимостей [], эффект сработает только один раз (аналог componentDidMount).
         // Здесь выполняем запрос к API после монтирования компонента.
-
-        api.getTracks() //   сделали  запрос
-            .then(json => {
-                setTracks(json.data); // помещаем все данные в tracks
-                setQueryListStatus('success') // убираем надпись загрузки
-            })
-
     }, [])
-
-    if (listQueryStatus === 'loading') {
-        return <div>loading...</div>
-    }
 
     const handleSelect = (trackId: string) => {
         // setSelectedTrackId(trackId)
-        props.onTrackSelected(trackId)  //  уведомляем  родителя, что такой трек  выбран
+        onTrackSelect(trackId)  //  уведомляем  родителя, что такой трек  выбран
+    }
+
+    return {
+        handleSelect,
+        listQueryStatus,
+        tracks
+    }
+}
+
+// GRASP: high cohesion / low coupling
+export function TracksList(props: Props) {
+    const {
+        handleSelect,
+        listQueryStatus,
+        tracks
+    } = useTracksList(props.onTrackSelect);
+
+    if (listQueryStatus === 'loading') {
+        return <div>loading...</div> // убираем надпись загрузки
     }
 
     return <ul>
         {tracks?.map(t => {
-                return (<Track
-                    onSelect={handleSelect} // когда вызовишь функцию передай мне  trackId
-                    isSelected={t.id === props.selectedTrackId} // если id === id нажатого элемента, то меняем цвет
-                    track={t}
-                />)
-            }
-        )}
-
-    </ul>
+            return <Track
+                onSelect={handleSelect} // когда вызовишь функцию передай мне  trackId
+                isSelected={t.id === props.selectedTrackId} // если id === id нажатого элемента, то меняем цвет
+                track={t} // сам объект трека
+            />;
+        })
+        }
+    </ul>;
 }
