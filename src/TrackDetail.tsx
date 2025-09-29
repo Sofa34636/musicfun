@@ -1,50 +1,40 @@
-import {useEffect, useRef, useState} from "react";
-import type {TrackResponse} from "./types.ts";
+
 import {api} from "./api.ts";
+import {useQuery} from "./hooks/utils/useQuary.ts"; // API функции для работы с сервером
 
 type Props = {
-    trackId: string | null
+    trackId: string | null // id выбранного трека (или null, если ничего не выбрано)
 }
 
-
 export function TrackDetail(props: Props) {
-    const [detailQueryStart, setDetailQueryStart] = useState<'pending' | 'success' | 'loading'>('pending') // загрузка деталей
-    const [track, setTrack] = useState<TrackResponse | null>(null) // id выбранного трека
+    console.log('TrackDetail') // просто смотрим в консоли, что компонент рендерится
 
-    const abortControllerRef = useRef<null | AbortController>(null) // создаём контроллер для возможности отмены запроса. Экономия ресурса и мы не  дожидаетмся  окончания запроса, когда он  уже не нужен
+    // достаём из хука данные и статус
+    const {data, status} = useQuery({
+        queryFn: ({signal}) => { // функция, которая будет делать запрос
+            return api.getTrack(props.trackId!, signal); // получаем конкретный трек
+        },
+        enabled: Boolean(props.trackId), // если trackId нет, запрос не делаем
+        queryKey: ['track', props.trackId] // ключ для кэша и подписки
+    })
 
-    useEffect(() => {
-        abortControllerRef.current?.abort() // обрываем связь, если ...
-
-        if (!props.trackId) {
-            setTrack(null) // если нам ничего не пришло чистим стейт
-            setDetailQueryStart('pending')
-            return;
-        }
-        abortControllerRef.current = new AbortController() //
-        setDetailQueryStart('loading');
-        api.getTrack(props.trackId, abortControllerRef.current.signal)
-            .then(json => {
-                setTrack(json); // помещаем данные выбранного трека
-                setDetailQueryStart('success'); // убираем надпись загрузки,  'success' - запрос  пришел
-            })
-    }, [props.trackId]); // зависимость будет вызываться при каждом   новом треке
-    if (detailQueryStart === 'pending') {
-        return <span>no track for display</span>
+    // если статус pending (ничего не выбрано или очистили)
+    if (status === 'pending') {
+        return <span>no track for display</span> // показываем надпись
     }
 
-    if (detailQueryStart === 'loading') {
+    // если статус loading — показываем лоадер
+    if (status === 'loading') {
         return <div>loading...</div>
     }
 
-    return (
-        <div>
-            <h2>Detail</h2>
-            <h3>{track?.data.attributes.title}</h3>
-            <div>{track?.data.attributes.likesCount}</div>
-            <div>{track?.data.attributes.lyrics}</div>
+    // если статус success — рендерим детали трека
+    return  <div>
+        <h2>Detail</h2>
 
-
-        </div>
-    )
+        <h3>{data!.data.attributes.title}</h3> {/* название трека */}
+        <div>{data!.data.attributes.addedAt}</div> {/* когда добавлен */}
+        <div>likes: {data!.data.attributes.likesCount}</div> {/* количество лайков */}
+        <div>lyrics: {data!.data.attributes.lyrics}</div> {/* текст песни */}
+    </div>
 }
