@@ -2,13 +2,13 @@
 
 import {keepPreviousData, useQuery} from "@tanstack/react-query";
 import {client} from "./shared/api/client.ts";
+import {useParams} from "./shared/libs/router/Route.tsx";
 
-type Props = {
-    trackId: string | null // id выбранного трека (или null, если ничего не выбрано)
-}
 
-export function TrackDetail(props: Props) {
+export function TrackDetail() {
     console.log('TrackDetail') // просто смотрим в консоли, что компонент рендерится
+
+    const {trackId} = useParams();
 
     // достаём из хука данные и статус
     const {data, isPending, isError, isFetching} = useQuery({
@@ -16,21 +16,21 @@ export function TrackDetail(props: Props) {
             const clientData = await  client.GET('/playlists/tracks/{trackId}', { // получаем конкретный трек
                 params: {
                     path: {
-                        trackId: props.trackId!
+                        trackId: trackId!
                     }
                 },
                 signal: signal
             });
             return clientData.data!
         },
-        enabled: Boolean(props.trackId), // если trackId нет, запрос не делаем
-        queryKey: ['track' , 'detail', props.trackId], // ключ для кэша и подписки
+        enabled: Boolean(trackId), // если trackId нет, запрос не делаем
+        queryKey: ['track' , 'detail', trackId], // ключ для кэша и подписки
         placeholderData: keepPreviousData // сохрани предыдущие данные,
     })
 
 
 
-    if (!props.trackId) { // если трек не выбран
+    if (!trackId) { // если трек не выбран
         return <div>no track selected</div>
     }
 

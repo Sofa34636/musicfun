@@ -1,4 +1,4 @@
-import './App.css'
+import './App.module.css'
 import {useEffect, useRef, useState} from "react";
 import type {TrackDataItem, TrackResponse, TracksResponse} from "./types.ts";
 

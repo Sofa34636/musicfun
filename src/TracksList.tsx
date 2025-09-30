@@ -1,19 +1,16 @@
 import {useQuery} from "@tanstack/react-query";
 import {client} from "./shared/api/client.ts";
-import {Track} from "./Track.tsx"; // API функции для работы с сервером
+import {Track} from "./Track.tsx";
+import {useSearchParams} from "react-router"; // API функции для работы с сервером
 
-type Props = {
-    onTrackSelect: (trackId: string) => void // функция для уведомления родителя, что выбран трек
-    selectedTrackId: string | null, // id выбранного трека
-    // children: ReactElement // (закомментированный пример как можно было бы передавать children)
-}
 
 // const props: Props = {
 //     children: <div></div>
 // }
 
-export function TracksList(props: Props) {
+export function TracksList() {
 
+    let [searchParams] = useSearchParams();
     // делаем запрос к API через useQuery
     // загрузка.FSM типо true\false, но мы предполагаем, что будут дополнительные детали
     const {data,  isPending,isError} = useQuery({
@@ -31,22 +28,19 @@ export function TracksList(props: Props) {
     }
 
     if (isError) {
-        return <div>Can't load tracks list</div>
+        return <div>
+            sort by {searchParams.get('sort')}
+            <hr/>
+            Can't load tracks list</div>
     }
 
-    // вызывается при клике на трек — уведомляем родителя
-    const handleSelect = (trackId: string) => {
-        // setSelectedTrackId(trackId) // тут мы могли бы сами держать selectedTrackId
-        props.onTrackSelect(trackId) // уведомляем родителя, что такой трек выбран
-    }
+
 
     return <ul>
         {data.data.map((t) => {
             return <Track
                 key={t.id} // уникальный ключ для списка
-                onSelect={ handleSelect } // когда вызовешь функцию — передай мне trackId
-                isSelected={t.id === props.selectedTrackId} // если id === id нажатого элемента, то меняем цвет
-                track={t} // сам объект трека
+             track={t} // сам объект трека
             />;
         })
         }
