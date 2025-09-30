@@ -1,5 +1,5 @@
 import {useEffect, useRef, useState} from "react";
-import type {Entry, QueryFnParams, QueryKey} from "../../query-client.ts";
+import type {Entry, QueryFnParams, QueryKey} from "../../shared/libs/query-client/query-client.ts";
 import {queryClient} from "../../query-client-instance.ts";
 
 
