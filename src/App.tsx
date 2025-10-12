@@ -1,7 +1,6 @@
 import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
 import {TracksList} from "./TracksList.tsx";
 import {TrackDetail} from "./TrackDetail.tsx";
-// import {BrowserRouter, NavLink, Route} from "./shared/libs/router/Route.tsx";
 import {BrowserRouter,  Route, Routes, useParams} from "react-router";
 import {AuthLayout, GlobalLayout} from "./layouts/AuthLayout.tsx";
 import {CommonLayout} from "./layouts/CommonLayout.tsx";
