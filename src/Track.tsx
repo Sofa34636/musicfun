@@ -1,26 +1,24 @@
 import type {SchemaTrackListItemOutput} from "./shared/api/schema.ts";
+import {NavLink} from "./shared/libs/route/Route.tsx";
+
 
 type Props = {
     track: SchemaTrackListItemOutput
-    isSelected:  boolean
-    onSelect: (trackId: string) => void  // кол бэк функкцию  передали, которая ничего не отдает,но принимает
 }
 
 export function Track(props: Props) {
 
-
-
-    const color =  props.isSelected ? "green" : "white";
-
     return (
-        <li  style={{color: color}}>
-            <h4 onClick={() => {
-                props.onSelect(props.track.id)
-            }} // () => {} - кол бэк функция наблюдатель, слушатель события, который вызывается при клике
-            >
-                {props.track.attributes.title}</h4>
-            <audio src={props.track.attributes.attachments[0]!.url}
-                   controls={true}
-            />
+        <li>
+            <h4>
+                <NavLink to={'/tracks/' + props.track.id}>
+                    {props.track.attributes.title}
+                </NavLink>
+            </h4>
+            <audio
+                // autoPlay={props.isAutoPlay}
+                src={props.track.attributes.attachments[0]!.url}
+                controls={true}
+               />
         </li>)
 }
